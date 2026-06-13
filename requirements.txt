@@ -5,3 +5,5 @@ sentence-transformers==2.5.1
 spacy==3.7.4
 scikit-learn==1.4.1.post1
 pandas==2.2.1
+matplotlib==3.8.3
+fpdf2==2.7.6

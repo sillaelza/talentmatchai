@@ -10,6 +10,30 @@ class TextPreprocessor:
         """Initialize the spaCy NLP model."""
         self.nlp = spacy.load("en_core_web_sm")
         
+        # Whitelist of skill-related keywords that should never be removed
+        self.skill_whitelist = {
+            'python', 'scikit-learn', 'sklearn', 'tensorflow', 'tf', 'flask',
+            'nlp', 'natural language processing', 'mongodb', 'mongo', 'regression',
+            'cosine', 'similarity', 'machine learning', 'deep learning', 'ai',
+            'artificial intelligence', 'pytorch', 'keras', 'pandas', 'numpy',
+            'matplotlib', 'seaborn', 'jupyter', 'sql', 'nosql', 'git', 'docker',
+            'kubernetes', 'aws', 'azure', 'gcp', 'linux', 'unix', 'javascript',
+            'typescript', 'react', 'angular', 'vue', 'node', 'express', 'django',
+            'rails', 'spring', 'java', 'c++', 'c#', '.net', 'go', 'rust', 'scala',
+            'r', 'sas', 'spss', 'tableau', 'power bi', 'excel', 'api', 'rest',
+            'graphql', 'json', 'xml', 'html', 'css', 'sass', 'webpack', 'babel',
+            'jenkins', 'ci/cd', 'cicd', 'devops', 'agile', 'scrum', 'tdd', 'bdd',
+            'oop', 'mvc', 'microservices', 'serverless', 'cloud', 'security',
+            'encryption', 'authentication', 'authorization', 'oauth', 'jwt',
+            'blockchain', 'web3', 'crypto', 'data', 'analytics', 'statistics',
+            'algorithms', 'data structures', 'database', 'backend', 'frontend',
+            'fullstack', 'mobile', 'ios', 'android', 'swift', 'kotlin', 'flutter',
+            'react native', 'unity', 'unreal', 'gaming', 'ar', 'vr', 'iot', 'edge',
+            '5g', 'networking', 'protocols', 'tcp', 'udp', 'http', 'https', 'dns',
+            'firewall', 'vpn', 'proxy', 'load balancer', 'cdn', 'caching',
+            'redis', 'memcached', 'elasticsearch', 'kafka', 'rabbitmq', 'graphql'
+        }
+        
         # Synonym dictionary for normalizing industry terms
         self.synonym_dict = {
             'ml': 'machine learning',
@@ -306,7 +330,8 @@ class TextPreprocessor:
     
     def normalize_tokens(self, text: str) -> str:
         """
-        Normalize tokens by filtering stop words and applying synonym mapping.
+        Normalize tokens by filtering stop words and applying synonym mapping,
+        while preserving whitelisted skill-related keywords.
         
         Args:
             text: Cleaned text string
@@ -320,8 +345,13 @@ class TextPreprocessor:
         # Process with spaCy
         doc = self.nlp(text)
         
-        # Filter out stop words and punctuation
-        tokens = [token.text for token in doc if not token.is_stop and not token.is_punct]
+        # Filter out stop words and punctuation, but preserve whitelisted skills
+        tokens = []
+        for token in doc:
+            token_lower = token.text.lower()
+            # Keep token if it's not a stopword, not punctuation, or is in the skill whitelist
+            if (not token.is_stop and not token.is_punct) or token_lower in self.skill_whitelist:
+                tokens.append(token.text)
         
         # Apply synonym mapping
         normalized_tokens = []

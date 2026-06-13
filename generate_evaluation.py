@@ -189,7 +189,7 @@ if __name__ == "__main__":
     # Run the validation evaluation
     metrics = run_validation_evaluation()
     
-    print("\n✅ Validation evaluation completed successfully!")
+    print("\n[SUCCESS] Validation evaluation completed successfully!")
     print("\nThese metrics can be used to assess the ranking quality of the")
     print("resume screening system. In production, you would:")
     print("  1. Collect human-annotated ground truth data")
