@@ -169,13 +169,11 @@ def rank_candidates(
             else:
                 matched_skills_ratio = len(matched_skills) / total_jd_skills
 
-            # Apply penalty multiplier if candidate has matched skills ratio < 0.25
-            if matched_skills_ratio < 0.25:
-                raw_cosine_score = raw_cosine_score * 0.3
+            # Normalize raw cosine score from (-1 to 1) to (0 to 1)
+            normalized_cosine_score = (raw_cosine_score + 1) / 2
 
-            # Boost the score to a more intuitive percentage range
-            # Formula: (raw_cosine_score + 1) / 2 converts -1 to 1 range to 0 to 1 range
-            similarity_score = (raw_cosine_score + 1) / 2
+            # Blend normalized cosine similarity and skill ratio with 50-50 weight
+            similarity_score = (0.5 * matched_skills_ratio + 0.5 * normalized_cosine_score)
 
             # Determine status based on threshold and skill ratio
             # Shortlisted if score is above threshold AND matched skills ratio is at least 0.25
@@ -271,11 +269,11 @@ def generate_explanation(filename: str, score: float, matched_skills: List[str],
         if len(matched_skills) > 3:
             skills_str += f", and {len(matched_skills) - 3} more"
         ratio_info = f" They have {len(matched_skills)}/{total_jd_skills} skills ({ratio_pct:.0f}% match) from the job description." if total_jd_skills > 0 else ""
-        return f"This candidate is a strong match.{ratio_info} They possess {len(matched_skills)} required skills including {skills_str}. Their profile closely aligns with the job requirements."
+        return f"This candidate is a strong match.{ratio_info} Their score is a 50-50 blend of semantic similarity and skill match ratio. They possess {len(matched_skills)} required skills including {skills_str}."
     else:
         # Unsuitable candidate
         if not skill_ratio_sufficient:
-            return f"This candidate only has {len(matched_skills)}/{total_jd_skills} skills ({ratio_pct:.0f}% match) from the job description, which is below the required 25%. A candidate must match at least 25% of the job description's skills to be considered suitable."
+            return f"This candidate only has {len(matched_skills)}/{total_jd_skills} skills ({ratio_pct:.0f}% match) from the job description, which is below the required 25%."
         elif missing_skills:
             top_missing = missing_skills[:3]
             missing_str = ", ".join(top_missing)
